@@ -1,0 +1,48 @@
+#include "CTBot.h"
+CTBot myBot;
+int relay = 4 ;
+
+String ssid = "CV.AJM_plus";     // REPLACE mySSID WITH YOUR WIFI SSID
+String pass = "Fourfive"; // REPLACE myPassword YOUR WIFI PASSWORD, IF ANY
+String token = "6854394186:AAEjbKfKPD78K3NYLas9nvo7GrWFneTNKjQ";   // REPLACE myToken WITH YOUR TELEGRAM BOT TOKEN
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Starting TelegramBot...");
+  myBot.wifiConnect(ssid, pass);
+	myBot.setTelegramToken(token);
+  if (myBot.testConnection())
+		Serial.println("Terhubung!");
+	else
+		Serial.println("Error!");
+  pinMode(relay,OUTPUT);
+  digitalWrite(relay,HIGH);
+}
+
+void loop() {
+  	// a variable to store telegram message data
+	TBMessage msg;
+
+	// if there is an incoming message...
+	if (CTBotMessageText == myBot.getNewMessage(msg)) {
+    if (msg.text.equalsIgnoreCase("/start")) {  //Perintah dari telegram ke perangkat
+        myBot.sendMessage(msg.sender.id, "*1* Untuk menyalakan \n*0* Untuk mematikan");
+    }
+		else if (msg.text.equalsIgnoreCase("1")) {              // if the received message is "LIGHT ON"...
+			digitalWrite(relay, LOW);                               // turn on the LED (inverted logic!)
+			myBot.sendMessage(msg.sender.id, "Lampu sudah menyala");  // notify the sender
+		}
+		else if (msg.text.equalsIgnoreCase("0")) {        // if the received message is "LIGHT OFF"...
+			digitalWrite(relay, HIGH);                              // turn off the led (inverted logic!)
+			myBot.sendMessage(msg.sender.id, "Lampu kembali mati"); // notify the sender
+		}
+		else {                                                    // otherwise...
+			// generate the message for the sender
+			String reply;
+			reply = (String)"Halo " + msg.sender.username + (String)". Kirim perintah\n *1* untuk menyalakan lampu\n or *0* untuk mematikan lampu.";
+			myBot.sendMessage(msg.sender.id, reply);             // and send it
+		}
+	}
+	// wait 500 milliseconds
+	delay(500);
+}
